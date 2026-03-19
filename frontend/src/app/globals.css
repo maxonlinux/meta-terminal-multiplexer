@@ -1,0 +1,51 @@
+@import "tailwindcss";
+@plugin "tailwindcss-react-aria-components";
+@plugin "tailwindcss-animate";
+
+:root {
+  --background: #090909;
+  --foreground: #171717;
+  --error: #e95034;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-error: var(--error);
+
+  --font-sans: var(--font-ibm-plex-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-accent: #155dfc;
+  --color-border: rgb(35, 38, 54);
+  --text-xxs: 10px;
+  --breakpoint-xs: 480px;
+}
+
+@custom-variant hover (&:hover);
+
+body {
+  background: var(--background);
+  /* color: var(--foreground); */
+  color: white;
+  @apply min-w-xs;
+}
+
+*::-webkit-scrollbar {
+  @apply h-1 w-1;
+}
+
+*::-webkit-scrollbar-track {
+  @apply bg-neutral-900;
+}
+
+*::-webkit-scrollbar-thumb {
+  @apply bg-white/10;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  @apply bg-neutral-700/80;
+}
+
+*.no-scrollbar::-webkit-scrollbar {
+  @apply hidden;
+}

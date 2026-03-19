@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "CommonJS",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "./dist",
+    "baseUrl": "./src", // Required for paths
+    "paths": {
+      "@/*": ["./*"], // Alias @/ maps to src/
+    },
+  },
+  "include": ["src", "drizzle.config.ts"],
+  "exclude": ["node_modules", "migrations", "tests"],
+}

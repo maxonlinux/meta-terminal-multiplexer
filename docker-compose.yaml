@@ -1,0 +1,204 @@
+services:
+  # Infrastructire
+  redis:
+    image: redis
+    restart: always
+    networks:
+      - terminal-net
+
+  traefik:
+    image: traefik
+    restart: always
+    command:
+      - "--api.dashboard=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - terminal-net
+
+  nats:
+    image: nats
+    restart: always
+    networks:
+      - terminal-net
+
+  clickhouse:
+    image: clickhouse/clickhouse-server
+    restart: always
+    environment:
+      CLICKHOUSE_DB: terminal
+      CLICKHOUSE_USER: terminal
+      CLICKHOUSE_PASSWORD: terminal
+    volumes:
+      - chdata:/var/lib/clickhouse
+    networks:
+      - terminal-net
+
+  # Services
+  multiplexer-service:
+    build: ./multiplexer-service
+    restart: always
+    depends_on:
+      - redis
+    environment:
+      PORT: 3000
+
+      CORE_URL: "http://${CORE_HOST}/public"
+      REDIS_CORE_URL: "redis://:super-secure-redis-password@${CORE_HOST}:6379"
+      REDIS_CORE_CHANNEL: "real:price"
+
+      REDIS_SIM_URL: "redis://redis:6379"
+      REDIS_SIM_CHANNEL: "sim:price"
+
+      REDIS_PUB_URL: "redis://redis:6379"
+      REDIS_PUB_CHANNEL: "terminal:price"
+
+      LOG_LEVEL: ${LOG_LEVEL}
+      NODE_ENV: ${NODE_ENV}
+
+    networks:
+      - terminal-net
+
+  # Go Server for Simulations (replaces simulations-service)
+  simulations-service:
+    build:
+      context: ./meta-multiplexer-go
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      - nats
+      - clickhouse
+    environment:
+      PORT: 3100
+      NODE_ENV: development
+      LOG_LEVEL: debug
+
+      JWT_SECRET: ${JWT_SECRET}
+      COOKIE_SECRET: ${COOKIE_SECRET}
+      ADMIN_USERNAME: admin
+      ADMIN_PASSWORD: admin
+
+      NATS_SUBSCRIBE_URL: nats://nats:4222
+      NATS_SUBSCRIBE_TOKEN:
+      NATS_SUBSCRIBE_TOPIC: real:price
+
+      SIM_DB_PATH: /data/simulations.sqlite
+
+      CH_HOST: clickhouse
+      CH_PORT: 9000
+      CH_USER: terminal
+      CH_PASSWORD: terminal
+      CH_DATABASE: terminal
+
+    volumes:
+      - ./data/simulations:/data
+    networks:
+      - terminal-net
+
+  main-service:
+    build: ./main-service
+    restart: always
+    depends_on:
+      - redis
+      - multiplexer-service
+      - simulations-service
+    environment:
+      PORT: 3000
+
+      DATABASE_URL: "file:/data/main.sqlite"
+      MULTIPLEXER_URL: "http://multiplexer-service:3000"
+      REDIS_URL: "redis://redis:6379"
+      REDIS_SUB_CHANNEL: "terminal:price"
+
+      SITE_NAME: ${SITE_NAME}
+      JWT_SECRET: ${JWT_SECRET}
+      COOKIE_SECRET: ${COOKIE_SECRET}
+      SMS_AUTH_TOKEN: ${SMS_AUTH_TOKEN}
+
+      LOG_LEVEL: ${LOG_LEVEL}
+      NODE_ENV: ${NODE_ENV}
+
+    volumes:
+      - uploads-main:/app/uploads
+      - ./data/main:/data
+    networks:
+      - terminal-net
+
+  websocket-service:
+    build: ./websocket-service
+    restart: always
+    depends_on:
+      - redis
+      - multiplexer-service
+    environment:
+      PORT: 3000
+
+      MULTIPLEXER_URL: "http://multiplexer-service:3000"
+      REDIS_URL: "redis://redis:6379"
+      REDIS_SUB_CHANNEL: "terminal:price"
+
+      LOG_LEVEL: ${LOG_LEVEL}
+      NODE_ENV: ${NODE_ENV}
+
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.terminal-ws.rule=PathPrefix(`/ws`)"
+      - "traefik.http.routers.terminal-ws.entrypoints=web"
+      - "traefik.http.services.terminal-ws.loadbalancer.server.port=3000"
+    networks:
+      - terminal-net
+
+  frontend:
+    restart: always
+    depends_on:
+      - websocket-service
+      - multiplexer-service
+      - main-service
+    build:
+      context: ./frontend
+      args:
+        SITE_NAME: ${SITE_NAME}
+        YEAR_FOUNDED: ${YEAR_FOUNDED}
+        SUPPORT_LINK: ${SUPPORT_LINK}
+        RECAPTCHA_KEY: ${RECAPTCHA_KEY}
+
+        CORE_URL: "http://${CORE_HOST}"
+        WS_URL: "ws://websocket-service:3000"
+        MULTIPLEXER_URL: "http://multiplexer-service:3000"
+        MAIN_URL: "http://main-service:3000"
+
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.frontend.entrypoints=web"
+      - "traefik.http.services.frontend.loadbalancer.server.port=3000"
+
+    networks:
+      - terminal-net
+
+  admin-frontend:
+    build: ./admin-frontend
+    restart: always
+    depends_on:
+      - main-service
+      - simulations-service
+      - multiplexer-service
+    env_file:
+      - ./admin-frontend/.env
+    networks:
+      - terminal-net
+    ports:
+      - "8088:3000"
+
+volumes:
+  uploads-main:
+  chdata:
+
+networks:
+  terminal-net:
+    driver: bridge
