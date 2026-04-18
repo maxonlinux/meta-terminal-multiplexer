@@ -11,19 +11,23 @@ export const useStages = () => {
       type: null,
     } satisfies EditableStage;
 
-    setStages((prev: any) => [...prev, stage]);
+    setStages((prev) => [...prev, stage]);
   };
 
   const updateStage = (id: UUID, stage: EditableStage) => {
-    setStages((prev: any) => {
-      const index = prev.findIndex((stage: any) => stage.id === id);
-      prev[index] = stage;
-      return [...prev];
+    setStages((prev) => {
+      const index = prev.findIndex((item) => item.id === id);
+      if (index === -1) {
+        return prev;
+      }
+      const next = [...prev];
+      next[index] = stage;
+      return next;
     });
   };
 
   const removeStage = (id: UUID) => {
-    setStages((prev: any) => prev.filter((stage: any) => stage.id !== id));
+    setStages((prev) => prev.filter((stage) => stage.id !== id));
   };
 
   return {

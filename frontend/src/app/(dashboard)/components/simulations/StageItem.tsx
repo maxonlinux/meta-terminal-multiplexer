@@ -1,11 +1,7 @@
 import {
-  ChevronRight,
   Clock,
   Target,
   Activity,
-  Check,
-  ArrowRight,
-  Dot,
 } from "lucide-react";
 import { Stage, StageType } from "../../types/simulations.types";
 import { cls } from "@/shared/utils";
@@ -26,8 +22,6 @@ export const StageItem = ({
   currentStageIndex: number;
 }) => {
   const isCurrent = index === currentStageIndex;
-  const isPast = index < currentStageIndex;
-  const isFuture = index > currentStageIndex;
 
   return (
     <tr

@@ -1,4 +1,4 @@
-import { Calendar, CalendarSync, Check, Clock, X } from "lucide-react";
+import { Calendar, CalendarSync, Check, Clock } from "lucide-react";
 import { useRef, useState } from "react";
 import {
   Button,
@@ -48,8 +48,6 @@ const Content = ({
       }
 
       const dateTime = getIsoDate(date, time);
-
-      console.log(dateTime);
 
       await rescheduleSimulation(simulationId, dateTime);
     } catch (error) {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import axios from "axios";
+import axios, { isAxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 
@@ -23,8 +23,12 @@ export default function LoginPage() {
 
       // При успешном входе редиректим на /
       router.push("/");
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Wrong password");
+    } catch (err: unknown) {
+      if (isAxiosError(err)) {
+        setError(err.response?.data?.message || "Wrong password");
+      } else {
+        setError("Wrong password");
+      }
     } finally {
       setLoading(false);
     }

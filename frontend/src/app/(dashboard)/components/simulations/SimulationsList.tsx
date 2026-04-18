@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Check, Funnel, Pickaxe, X } from "lucide-react";
+import { ArrowRight, Check, Funnel, Pickaxe } from "lucide-react";
 import {
   Button,
   Checkbox,

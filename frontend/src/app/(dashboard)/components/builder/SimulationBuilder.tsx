@@ -1,5 +1,4 @@
 import { Skeleton } from "@/shared/components/Skeleton";
-import { WithSkeleton } from "@/shared/components/WithSkeleton";
 import { cls, getIsoDate } from "@/shared/utils";
 import {
   Calendar,
@@ -29,10 +28,8 @@ import { EditableStageItem } from "./EditableStageItem";
 import {
   CalendarDate,
   Time,
-  toCalendarDateTime,
 } from "@internationalized/date";
 import { StageType } from "../../types/simulations.types";
-import { api } from "@/shared/axios/api";
 import { useSimulations } from "../../hooks/useSimulations";
 import { isAxiosError } from "axios";
 
@@ -78,8 +75,6 @@ export const SimulationBuilder = ({
       toast.loading("Creating simulation...");
 
       const dateTime = getIsoDate(date, time);
-
-      console.log(dateTime);
 
       await createSimulation(asset.symbol, dateTime, stages);
 
