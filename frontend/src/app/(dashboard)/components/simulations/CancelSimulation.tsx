@@ -48,8 +48,7 @@ export const CancelSimulation = ({ simulationId }: { simulationId: UUID }) => {
   const handleCancel = async () => {
     try {
       await abortSimulation(simulationId);
-    } catch (error) {
-      console.log(error);
+    } catch {
     } finally {
       handleClose();
     }

@@ -25,8 +25,7 @@ const Content = ({
   const handleDelete = async () => {
     try {
       await deleteSimulation(simulationId);
-    } catch (error) {
-      console.log(error);
+    } catch {
     } finally {
       onClose();
     }

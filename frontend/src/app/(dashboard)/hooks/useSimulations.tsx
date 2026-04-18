@@ -1,11 +1,10 @@
 import useSWR from "swr";
-import { api } from "@/shared/axios/api";
+import { API_BASE, api } from "@/shared/axios/api";
 import { Simulation } from "../types/simulations.types";
 import { UUID } from "crypto";
 import { EditableStage } from "../types/editor.types";
-import { withBasePath } from "@/shared/base-path";
 
-const simulationsPath = withBasePath("/api/proxy/multiplexer/admin/simulations");
+const simulationsPath = `${API_BASE}/api/proxy/multiplexer/admin/simulations`;
 
 export const useSimulations = () => {
   const { data, isLoading, error, mutate } = useSWR<Simulation[]>(
@@ -38,7 +37,7 @@ export const useSimulations = () => {
     isoDateTime: string | null,
   ) => {
     await api.patch(
-      withBasePath(`/api/proxy/multiplexer/admin/simulations/reschedule/${simulationId}`),
+      `${API_BASE}/api/proxy/multiplexer/admin/simulations/reschedule/${simulationId}`,
       { startTime: isoDateTime },
     );
 
@@ -47,7 +46,7 @@ export const useSimulations = () => {
 
   const deleteSimulation = async (simulationId: UUID) => {
     await api.delete(
-      withBasePath(`/api/proxy/multiplexer/admin/simulations/${simulationId}`),
+      `${API_BASE}/api/proxy/multiplexer/admin/simulations/${simulationId}`,
     );
 
     await mutate();
@@ -55,7 +54,7 @@ export const useSimulations = () => {
 
   const abortSimulation = async (simulationId: UUID) => {
     await api.patch(
-      withBasePath(`/api/proxy/multiplexer/admin/simulations/abort/${simulationId}`),
+      `${API_BASE}/api/proxy/multiplexer/admin/simulations/abort/${simulationId}`,
     );
 
     await mutate();

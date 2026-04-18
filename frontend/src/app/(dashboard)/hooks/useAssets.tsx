@@ -1,9 +1,8 @@
 import useSWR from "swr";
 import { AssetData } from "@/shared/types";
-import { api } from "@/shared/axios/api";
-import { withBasePath } from "@/shared/base-path";
+import { API_BASE, api } from "@/shared/axios/api";
 
-const assetsPath = withBasePath("/api/assets");
+const assetsPath = `${API_BASE}/api/assets`;
 
 export const useAssets = () => {
   const { data, isLoading, error, mutate } = useSWR<AssetData[]>(
