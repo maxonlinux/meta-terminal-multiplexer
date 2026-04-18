@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  basePath: process.env.ADMIN_BASE_PATH || undefined,
   /* config options here */
   async rewrites() {
     return [

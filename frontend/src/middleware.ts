@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getEnv } from "../env.config";
 
 const env = await getEnv();
+const adminBasePath = env.ADMIN_BASE_PATH || "";
 
 async function checkSetup() {
   const res = await fetch(
@@ -25,21 +26,49 @@ function checkToken(request: NextRequest) {
   return !!token?.value;
 }
 
+function stripBasePath(pathname: string) {
+  if (!adminBasePath || adminBasePath === "/") {
+    return pathname;
+  }
+  if (!pathname.startsWith(adminBasePath)) {
+    return pathname;
+  }
+  const stripped = pathname.slice(adminBasePath.length);
+  return stripped === "" ? "/" : stripped;
+}
+
+function withBasePath(path: string) {
+  if (!adminBasePath || adminBasePath === "/") {
+    return path;
+  }
+  if (path === "/") {
+    return adminBasePath;
+  }
+  return `${adminBasePath}${path}`;
+}
+
+function redirectTo(request: NextRequest, path: string) {
+  const url = request.nextUrl.clone();
+  url.pathname = withBasePath(path);
+  url.search = "";
+  return NextResponse.redirect(url);
+}
+
 export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  const pathname = stripBasePath(request.nextUrl.pathname);
 
   // Если это /setup — всегда пропускаем (нужно чтобы setup прошё
   if (pathname === "/setup") {
     // If token - redirect to dashboard
     const token = checkToken(request);
     if (token) {
-      return NextResponse.redirect(new URL(`/`, request.url));
+      return redirectTo(request, "/");
     }
 
     const init = await checkSetup();
 
     if (init) {
-      return NextResponse.redirect(new URL(`/login`, request.url));
+      return redirectTo(request, "/login");
     }
 
     return NextResponse.next();
@@ -50,7 +79,7 @@ export async function middleware(request: NextRequest) {
     // If token - redirect to dashboard
     const token = checkToken(request);
     if (token) {
-      return NextResponse.redirect(new URL(`/`, request.url));
+      return redirectTo(request, "/");
     }
 
     const init = await checkSetup();
@@ -59,7 +88,7 @@ export async function middleware(request: NextRequest) {
       return NextResponse.next();
     }
 
-    return NextResponse.redirect(new URL(`/setup`, request.url));
+    return redirectTo(request, "/setup");
   }
 
   // Для остальных путей — проверяем токен
@@ -75,11 +104,11 @@ export async function middleware(request: NextRequest) {
 
   // If setup - redirect to login
   if (init) {
-    return NextResponse.redirect(new URL(`/login`, request.url));
+    return redirectTo(request, "/login");
   }
 
   // If no setup - redirect to setup
-  return NextResponse.redirect(new URL(`/setup`, request.url));
+  return redirectTo(request, "/setup");
 }
 
 export const config = {
