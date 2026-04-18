@@ -4,6 +4,7 @@ import { useState } from "react";
 import axios, { isAxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import { ArrowRight } from "lucide-react";
+import { withBasePath } from "@/shared/base-path";
 
 export default function SetupPage() {
   const [password, setPassword] = useState("");
@@ -24,7 +25,9 @@ export default function SetupPage() {
       }
 
       // POST запрос к бекенду, который сохранит пароль (например /api/admin/setup)
-      await axios.post("/api/proxy/multiplexer/admin/auth/setup", { password });
+      await axios.post(withBasePath("/api/proxy/multiplexer/admin/auth/setup"), {
+        password,
+      });
 
       // После успешного сохранения — редиректим на логин
       router.push("/login");

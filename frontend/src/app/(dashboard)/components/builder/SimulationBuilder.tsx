@@ -32,6 +32,7 @@ import {
 import { StageType } from "../../types/simulations.types";
 import { useSimulations } from "../../hooks/useSimulations";
 import { isAxiosError } from "axios";
+import { withBasePath } from "@/shared/base-path";
 
 export const SimulationBuilder = ({
   asset,
@@ -102,7 +103,7 @@ export const SimulationBuilder = ({
           <div className="size-8 bg-neutral-800 rounded-xs overflow-hidden">
             <img
               className="size-full"
-              src={`/api/proxy/core/storage/${asset.image_url}`}
+              src={withBasePath(`/api/proxy/core/storage/${asset.image_url}`)}
               alt={`${asset.symbol} Logo`}
             />
           </div>

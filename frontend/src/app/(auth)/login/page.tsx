@@ -4,6 +4,7 @@ import { useState } from "react";
 import axios, { isAxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import { ArrowRight } from "lucide-react";
+import { withBasePath } from "@/shared/base-path";
 
 export default function LoginPage() {
   const [password, setPassword] = useState("");
@@ -19,7 +20,9 @@ export default function LoginPage() {
     try {
       // Отправляем пароль на бекенд для аутентификации
       // Бекенд должен в ответе установить httpOnly cookie с JWT
-      await axios.post("/api/proxy/multiplexer/admin/auth/login", { password });
+      await axios.post(withBasePath("/api/proxy/multiplexer/admin/auth/login"), {
+        password,
+      });
 
       // При успешном входе редиректим на /
       router.push("/");

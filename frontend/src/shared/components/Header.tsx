@@ -3,9 +3,10 @@
 import { api } from "@/shared/axios/api";
 import { ArrowRight } from "lucide-react";
 import { Button } from "react-aria-components";
+import { withBasePath } from "@/shared/base-path";
 
 const logout = async () => {
-  await api.post(`/api/proxy/multiplexer/admin/auth/logout`);
+  await api.post(withBasePath("/api/proxy/multiplexer/admin/auth/logout"));
   location.reload();
 };
 
