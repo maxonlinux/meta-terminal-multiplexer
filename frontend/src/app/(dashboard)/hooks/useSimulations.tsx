@@ -4,7 +4,7 @@ import { Simulation } from "../types/simulations.types";
 import { UUID } from "crypto";
 import { EditableStage } from "../types/editor.types";
 
-const simulationsPath = `${API_BASE}/api/proxy/multiplexer/admin/simulations`;
+const simulationsPath = `${API_BASE}/proxy/multiplexer/admin/simulations`;
 
 export const useSimulations = () => {
   const { data, isLoading, error, mutate } = useSWR<Simulation[]>(
@@ -37,7 +37,7 @@ export const useSimulations = () => {
     isoDateTime: string | null,
   ) => {
     await api.patch(
-      `${API_BASE}/api/proxy/multiplexer/admin/simulations/reschedule/${simulationId}`,
+      `${API_BASE}/proxy/multiplexer/admin/simulations/reschedule/${simulationId}`,
       { startTime: isoDateTime },
     );
 
@@ -46,7 +46,7 @@ export const useSimulations = () => {
 
   const deleteSimulation = async (simulationId: UUID) => {
     await api.delete(
-      `${API_BASE}/api/proxy/multiplexer/admin/simulations/${simulationId}`,
+      `${API_BASE}/proxy/multiplexer/admin/simulations/${simulationId}`,
     );
 
     await mutate();
@@ -54,7 +54,7 @@ export const useSimulations = () => {
 
   const abortSimulation = async (simulationId: UUID) => {
     await api.patch(
-      `${API_BASE}/api/proxy/multiplexer/admin/simulations/abort/${simulationId}`,
+      `${API_BASE}/proxy/multiplexer/admin/simulations/abort/${simulationId}`,
     );
 
     await mutate();

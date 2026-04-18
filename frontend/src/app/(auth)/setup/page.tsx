@@ -25,7 +25,7 @@ export default function SetupPage() {
       }
 
       // POST запрос к бекенду, который сохранит пароль (например /api/admin/setup)
-      await api.post(`${API_BASE}/api/proxy/multiplexer/admin/auth/setup`, {
+      await api.post(`${API_BASE}/proxy/multiplexer/admin/auth/setup`, {
         password,
       });
 

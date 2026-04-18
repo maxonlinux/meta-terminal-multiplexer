@@ -20,7 +20,7 @@ export default function LoginPage() {
     try {
       // Отправляем пароль на бекенд для аутентификации
       // Бекенд должен в ответе установить httpOnly cookie с JWT
-      await api.post(`${API_BASE}/api/proxy/multiplexer/admin/auth/login`, {
+      await api.post(`${API_BASE}/proxy/multiplexer/admin/auth/login`, {
         password,
       });
 

@@ -5,7 +5,7 @@ import { ArrowRight } from "lucide-react";
 import { Button } from "react-aria-components";
 
 const logout = async () => {
-  await api.post(`${API_BASE}/api/proxy/multiplexer/admin/auth/logout`);
+  await api.post(`${API_BASE}/proxy/multiplexer/admin/auth/logout`);
   location.reload();
 };
 
