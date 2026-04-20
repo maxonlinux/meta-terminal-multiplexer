@@ -124,7 +124,7 @@ class MultiplexerService {
 
     const inActiveScenario = (t: number) => {
       if (!activeScenario) return false;
-      return t >= dateToSeconds(activeScenario.startTime.getTime());
+      return t >= dateToSeconds(activeScenario.startTime);
     };
 
     const realFiltered = real.filter(
