@@ -5,27 +5,27 @@ import "./globals.css";
 // import { gilroy } from "@/fonts";
 
 const ibmPlexSans = IBM_Plex_Sans({
-  weight: ["200", "300", "400", "500", "600", "700"],
-  variable: "--font-ibm-plex-sans",
-  subsets: ["latin"],
+	weight: ["200", "300", "400", "500", "600", "700"],
+	variable: "--font-ibm-plex-sans",
+	subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "Core Admin",
-  description: "Admin panel",
+	title: "Sim Admin",
+	description: "Simulation admin panel",
 };
 
 export default async function LocaleLayout({
-  children,
+	children,
 }: Readonly<{
-  children: React.ReactNode;
+	children: React.ReactNode;
 }>) {
-  return (
-    <html lang="en">
-      <body className={`${ibmPlexSans.className} antialiased`}>
-        <CustomToaster />
-        {children}
-      </body>
-    </html>
-  );
+	return (
+		<html lang="en">
+			<body className={`${ibmPlexSans.className} antialiased`}>
+				<CustomToaster />
+				{children}
+			</body>
+		</html>
+	);
 }

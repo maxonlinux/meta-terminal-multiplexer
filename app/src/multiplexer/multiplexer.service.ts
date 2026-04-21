@@ -10,23 +10,12 @@ import { wsCandlesService } from "@/ws/ws.candles.service";
 import { dateToSeconds } from "@/utils";
 
 class MultiplexerService {
-  private static readonly LAST_CANDLE_CACHE_TTL_MS = 500;
-  private static readonly LAST_CANDLE_CACHE_MAX_KEYS = 1000;
-
   private isReady: boolean;
   private resolveReady: () => void;
   private readyPromise: Promise<void>;
 
   private lastPrices: Map<string, number>; // symbol -> price
   private pricePublisher: ((symbol: string, price: number) => void) | null;
-  private lastCandleCache: Map<
-    string,
-    {
-      value: Candle | null;
-      expiresAt: number;
-    }
-  >;
-  private lastCandleInFlight: Map<string, Promise<Candle | null>>;
 
   constructor() {
     this.isReady = false;
@@ -41,8 +30,6 @@ class MultiplexerService {
 
     this.lastPrices = new Map();
     this.pricePublisher = null;
-    this.lastCandleCache = new Map();
-    this.lastCandleInFlight = new Map();
   }
 
   async init() {
@@ -155,10 +142,6 @@ class MultiplexerService {
       .slice(0, outputsize);
   };
 
-  private getLastCandleKey(symbol: string, interval: number) {
-    return `${symbol}:${interval}`;
-  }
-
   private getBucketStart(time: number, interval: number) {
     return Math.floor(time / interval) * interval;
   }
@@ -181,89 +164,28 @@ class MultiplexerService {
     };
   }
 
-  private getCachedLastCandle(key: string): Candle | null | undefined {
-    const entry = this.lastCandleCache.get(key);
-    if (!entry) return undefined;
-
-    if (Date.now() > entry.expiresAt) {
-      this.lastCandleCache.delete(key);
-      return undefined;
-    }
-
-    this.lastCandleCache.delete(key);
-    this.lastCandleCache.set(key, entry);
-    return entry.value;
-  }
-
-  private setCachedLastCandle(key: string, value: Candle | null) {
-    if (this.lastCandleCache.has(key)) {
-      this.lastCandleCache.delete(key);
-    }
-
-    this.lastCandleCache.set(key, {
-      value,
-      expiresAt: Date.now() + MultiplexerService.LAST_CANDLE_CACHE_TTL_MS,
-    });
-
-    if (this.lastCandleCache.size <= MultiplexerService.LAST_CANDLE_CACHE_MAX_KEYS) {
-      return;
-    }
-
-    const oldest = this.lastCandleCache.keys().next().value;
-    if (oldest) {
-      this.lastCandleCache.delete(oldest);
-    }
-  }
-
   private getMergedLastCandle = async (
     symbol: string,
     interval: number
   ): Promise<Candle | null> => {
-    const key = this.getLastCandleKey(symbol, interval);
+    const [real, sim] = await Promise.all([
+      sdk.lastCandle(symbol, interval),
+      candlesRepo.getLastSimCandle(symbol, interval),
+    ]);
 
-    const cached = this.getCachedLastCandle(key);
-    if (cached !== undefined) {
-      return cached;
+    if (!real) {
+      return sim;
     }
 
-    const inFlight = this.lastCandleInFlight.get(key);
-    if (inFlight) {
-      return await inFlight;
+    if (!sim) {
+      return real;
     }
 
-    const request = (async () => {
-      const [real, sim] = await Promise.all([
-        sdk.lastCandle(symbol, interval),
-        candlesRepo.getLastSimCandle(symbol, interval),
-      ]);
-
-      if (!real) {
-        this.setCachedLastCandle(key, sim);
-        return sim;
-      }
-
-      if (!sim) {
-        this.setCachedLastCandle(key, real);
-        return real;
-      }
-
-      if (!this.sameBucket(real, sim, interval)) {
-        this.setCachedLastCandle(key, real);
-        return real;
-      }
-
-      const merged = this.mergeCandles(real, sim);
-      this.setCachedLastCandle(key, merged);
-      return merged;
-    })();
-
-    this.lastCandleInFlight.set(key, request);
-
-    try {
-      return await request;
-    } finally {
-      this.lastCandleInFlight.delete(key);
+    if (!this.sameBucket(real, sim, interval)) {
+      return real;
     }
+
+    return this.mergeCandles(real, sim);
   };
 
   getLastCandle = async (symbol: string, interval: number) => {
