@@ -43,7 +43,7 @@ class MultiplexerService {
   private handleUpdate(symbol: string, price: number) {
     this.lastPrices.set(symbol, price);
 
-    wsCandlesService.send(symbol);
+    wsCandlesService.send(symbol, price);
     wsPricesService.send(symbol, price);
     this.pricePublisher?.(symbol, price);
   }
