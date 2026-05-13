@@ -77,18 +77,20 @@ class MultiplexerService {
   getPrice = async (symbol: string) => {
     await this.readyPromise;
 
-    const price = this.lastPrices.get(symbol);
-    if (price) return price;
+    const cached = this.lastPrices.get(symbol);
+    const isSimulationRunning = scenariosService.isRunning(symbol);
+
+    if (isSimulationRunning && cached) {
+      return cached;
+    }
+
+    if (cached) return cached;
 
     const corePrice = await sdk.price(symbol);
     if (!corePrice) return null;
 
-    // Checking again before set to avoid any races
-    const rechecked = this.lastPrices.get(symbol);
-    if (rechecked) return rechecked;
-
-    this.lastPrices.set(symbol, corePrice);
-
+    // Do not cache core fallback here. Cache must be driven by incoming NATS updates
+    // (or explicit simulated price updates) to avoid sticky stale values.
     return corePrice;
   };
 
