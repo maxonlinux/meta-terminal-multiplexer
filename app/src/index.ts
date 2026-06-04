@@ -18,6 +18,7 @@ import pricesRoutes from "./prices/prices.routes";
 import { coreIngestor } from "./shared/core/core.ingestor";
 import { simulationScheduler } from "./simulations/scheduler/scheduler.service";
 import wsRoutes from "./ws/ws.routes";
+import { initLogging } from "./shared/logger";
 import { NatsClient } from "./shared/nats.client";
 
 export const COOKIE_TOKEN_NAME = "meta_multiplexer_token";
@@ -100,6 +101,8 @@ let localNatsClient: NatsClient | null = null;
 
 const start = async () => {
   try {
+    await initLogging();
+
     // Init local NATS for publishing prices
     localNatsClient = await NatsClient.getInstance(
       config.NATS_PUBLISH_URL.toString(),
